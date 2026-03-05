@@ -11,7 +11,7 @@ var Animated_Config;
 var Haobj = null;
 var View;
 var Panel_Holder;
-var Debug_Mode = true;
+var Debug_Mode = false;
 var Loaded = false;
 var View_Loaded = false;
 var Meme_Remover = null;
@@ -527,16 +527,19 @@ function renderBackgroundHTML() {
       transparent_body.innerHTML = ``;
 
 // transparent for top Pannel
-      STATUS_MESSAGE (current_config.transparent_panel);
       if (current_config.transparent_panel) {
         var html_element = document.querySelector("html");
-        html_element.style.removeProperty ('--app-header-background-color');
-      
-        var ha_style = `<style>
-    	    html {
-    		--primary-color:initial;
-    	    }`;
-        Header.insertAdjacentHTML('beforeBegin',ha_style);
+        html_element.style.removeProperty('--app-header-background-color');
+
+        if (!document.getElementById('animated-bg-panel-style')) {
+          var ha_style = document.createElement('style');
+          ha_style.id = 'animated-bg-panel-style';
+          ha_style.innerHTML = `
+            html {
+              --primary-color: initial;
+            }`;
+          document.head.appendChild(ha_style);
+        }
       }
 
       var div = document.createElement("div");
@@ -668,6 +671,17 @@ function setDebugMode() {
   }
 }
 
+function cleanupDOM() {
+  if (Root && Root.shadowRoot) {
+    var oldDiv = Root.shadowRoot.getElementById('background-video');
+    if (oldDiv) oldDiv.remove();
+    var oldStyles = Root.shadowRoot.querySelectorAll('style');
+    oldStyles.forEach(function(s) { s.remove(); });
+  }
+  var panelStyle = document.getElementById('animated-bg-panel-style');
+  if (panelStyle) panelStyle.remove();
+}
+
 //main function
 function run() {
   getVars();
@@ -746,6 +760,7 @@ function run() {
 }
 
 function restart() {
+  cleanupDOM();
   clearInterval(wait_interval);
   var wait_interval = setInterval(() => {
     getVars()
