@@ -501,7 +501,7 @@ function renderBackgroundHTML() {
       
       .bg-wrap{
           position: fixed;
-          right: 0;
+          left: 0;
           top: 0;
           min-width: 100vw; 
           min-height: 100vh;
@@ -511,6 +511,12 @@ function renderBackgroundHTML() {
       hui-view-background{
           background:none;
       }
+
+      hui-masonry-view,
+      hui-sections-view,
+      hui-panel-view {
+          filter: opacity(0.` + Opacity + `);
+      }
       `;
 
       if (parseInt(current_config.opacity) > 0.0) {
@@ -518,13 +524,7 @@ function renderBackgroundHTML() {
       }
 
       var transparent_body = document.createElement("style");
-      transparent_body.innerHTML = `
-        hui-masonry-view,
-        hui-sections-view,
-        hui-panel-view {
-          filter: opacity(0.` + Opacity + `);
-        }
-      `;
+      transparent_body.innerHTML = ``;
 
 // transparent for top Pannel
       STATUS_MESSAGE (current_config.transparent_panel);
@@ -549,7 +549,6 @@ function renderBackgroundHTML() {
     
       Root.shadowRoot.appendChild(style);
       Root.shadowRoot.appendChild(div);
-      View.insertBefore(transparent_body,View.firstChild);
       
       View.setAttribute ("style","background:none;");
       
