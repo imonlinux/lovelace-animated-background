@@ -407,3 +407,13 @@ While I've done my best to perfect the device/user exceptions, I am not perfect.
 If you plan on *using* Animated Background on a mobile device, be aware that this will most likely use a lot of mobile data.
 
 [Troubleshooting](https://github.com/thomasloven/hass-config/wiki/Lovelace-Plugins)
+
+# Troubleshooting: Popups or overlays appear behind the background
+
+If you are using a card integration such as **Bubble Card** and notice that popups or list overlays open *behind* the animated background, this is caused by a CSS stacking context issue.
+
+Applying `filter` or `opacity` CSS properties to `hui-masonry-view`, `hui-sections-view`, or `hui-panel-view` forces the browser to create a new stacking context for those elements. This confines the z-index of all child elements — including popup overlays — to that stacking context, preventing them from appearing above the background.
+
+**The fix** removes all `filter` and `opacity` CSS injection from view root elements entirely. The background wrapper and iframe also have `pointer-events: none` applied so they never intercept mouse or touch input.
+
+> **Note:** Do not apply `filter` or `opacity` CSS properties directly to `hui-masonry-view`, `hui-sections-view`, or `hui-panel-view` via themes or custom CSS, as this will re-introduce the stacking context issue and cause dialogs/popups to render behind overlays.

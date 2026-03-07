@@ -1,4 +1,4 @@
-//const
+
 const Debug_Prefix = "Animated Background DEBUG: ";
 const Log_Prefix = "Animated Background: "
 
@@ -505,23 +505,18 @@ function renderBackgroundHTML() {
           top: 0;
           min-width: 100vw; 
           min-height: 100vh;
-          z-index: -10;
+          z-index: -12;
+          pointer-events: none;
+      }
+
+      #background-iframe{
+          pointer-events: none;
       }
 
       hui-view-background{
           background:none;
       }
-
-      hui-masonry-view,
-      hui-sections-view,
-      hui-panel-view {
-          filter: opacity(0.` + Opacity + `);
-      }
       `;
-
-      if (parseInt(current_config.opacity) > 0.0) {
-        Opacity = current_config.opacity;
-      }
 
       var transparent_body = document.createElement("style");
       transparent_body.innerHTML = ``;
@@ -546,7 +541,7 @@ function renderBackgroundHTML() {
       div.id = "background-video";
       div.className = "bg-wrap";
       div.innerHTML = `
-       <iframe id="background-iframe" class="bg-video" frameborder="0" srcdoc="${source_doc}"/> 
+       <iframe id="background-iframe" class="bg-video" frameborder="0" style="pointer-events:none;" srcdoc="${source_doc}"/> 
       
       `;
     
