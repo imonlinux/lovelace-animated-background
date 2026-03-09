@@ -12,6 +12,7 @@ animated_background:
   transparent_panel: true/false
   ...
 ```
+Bubble Card users: If you wish to keep the opacity option enabled and are experiencing popup issues with Bubble Card specifically, adding hide_backdrop: true to your Bubble Card configuration will work around the stacking context issue by disabling the Bubble Card backdrop element. Note this removes the dimmed backdrop visual effect from Bubble Card popups.
 
 Sorry but now case sensitive (only lower)
 
