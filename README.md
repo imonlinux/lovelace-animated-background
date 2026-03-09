@@ -20,7 +20,7 @@ Sorry but now case sensitive (only lower)
 - Fixed errors in new version Home Assistant. (Thanks [dreimer1986/lovelace-animated-background](https://github.com/dreimer1986/lovelace-animated-background.git)
 - Added transparent mode for cards.
 
-- `opacity:` - Number for transparent card level ( 0 - 99 ).
+- `opacity:` - Number for transparent card level ( 0 - 99 ). **Note:** enabling this creates a CSS stacking context on the view element which may cause popups and overlays (e.g. Bubble Card) to appear behind the background. See Troubleshooting section below.
 example:
 ```yaml
 animated_background:
@@ -414,6 +414,8 @@ If you are using a card integration such as **Bubble Card** and notice that popu
 
 Applying `filter` or `opacity` CSS properties to `hui-masonry-view`, `hui-sections-view`, or `hui-panel-view` forces the browser to create a new stacking context for those elements. This confines the z-index of all child elements — including popup overlays — to that stacking context, preventing them from appearing above the background.
 
-**The fix** removes all `filter` and `opacity` CSS injection from view root elements entirely. The background wrapper and iframe also have `pointer-events: none` applied so they never intercept mouse or touch input.
+**The default behaviour** removes all `filter` and `opacity` CSS injection from view root elements entirely. The background wrapper and iframe also have `pointer-events: none` applied so they never intercept mouse or touch input.
+
+If you use the `opacity` configuration option (values 1–99), the plugin will apply a plain `opacity:` CSS property to the view element to make cards semi-transparent over the background. This creates a CSS stacking context which confines the z-index of all child elements — including popup overlays — preventing them from appearing above the background. If popups or overlays appear behind the background while using the `opacity` option, remove it or set it to `100`.
 
 > **Note:** Do not apply `filter` or `opacity` CSS properties directly to `hui-masonry-view`, `hui-sections-view`, or `hui-panel-view` via themes or custom CSS, as this will re-introduce the stacking context issue and cause dialogs/popups to render behind overlays.
