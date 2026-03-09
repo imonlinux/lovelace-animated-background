@@ -566,7 +566,7 @@ function renderBackgroundHTML() {
 
   // transparent for top Panel - evaluated on every render
   if (current_config.transparent_panel) {
-    if (!Root.shadowRoot.getElementById('animated-bg-panel-style')) {
+    if (!Hui.shadowRoot.getElementById('animated-bg-panel-style')) {
       var ha_style = document.createElement('style');
       ha_style.id = 'animated-bg-panel-style';
       ha_style.innerHTML = `
@@ -576,11 +576,11 @@ function renderBackgroundHTML() {
         .toolbar {
           background-color: transparent !important;
         }`;
-      Root.shadowRoot.appendChild(ha_style);
+      Hui.shadowRoot.appendChild(ha_style);
     }
   }
   else {
-    var panelStyle = Root.shadowRoot.getElementById('animated-bg-panel-style');
+    var panelStyle = Hui.shadowRoot.getElementById('animated-bg-panel-style');
     if (panelStyle) panelStyle.remove();
   }
 }
@@ -692,8 +692,10 @@ function cleanupDOM() {
     var oldStyles = Root.shadowRoot.querySelectorAll('style');
     oldStyles.forEach(function(s) { s.remove(); });
   }
-  var panelStyle = document.getElementById('animated-bg-panel-style');
-  if (panelStyle) panelStyle.remove();
+  if (Hui && Hui.shadowRoot) {
+    var panelStyle = Hui.shadowRoot.getElementById('animated-bg-panel-style');
+    if (panelStyle) panelStyle.remove();
+  }
 }
 
 //main function
