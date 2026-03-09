@@ -565,10 +565,10 @@ function renderBackgroundHTML() {
     }  // <-- this closes the if (state_url != "" && Hui) block
 
   // transparent for top Panel - evaluated on every render
-  console.log("AB: transparent_panel check, value:", current_config.transparent_panel, "Hui:", !!Hui, "Hui.shadowRoot:", !!(Hui && Hui.shadowRoot));
-  console.log("AB: current_config keys:", Object.keys(current_config));
-  console.log("AB: current_config:", JSON.stringify(current_config));
-  if (current_config.transparent_panel) {
+  // Fall back to root Animated_Config for top-level settings not present in group/view configs
+  var transparent_panel = current_config.transparent_panel !== undefined ? current_config.transparent_panel : (Animated_Config ? Animated_Config.transparent_panel : false);
+  var panel_opacity = current_config.opacity !== undefined ? current_config.opacity : (Animated_Config ? Animated_Config.opacity : 99);
+  if (transparent_panel) {
     console.log("AB: injecting panel style");
     if (!Hui.shadowRoot.getElementById('animated-bg-panel-style')) {
       var ha_style = document.createElement('style');
