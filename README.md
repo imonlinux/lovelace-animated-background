@@ -97,6 +97,8 @@ All options go under the `animated_background:` key at the root of your Lovelace
 | `excluded_devices` | list of strings | These device types will not show the background. |
 | `debug` | bool | Enables detailed console logging. |
 | `display_user_agent` | bool | Shows an alert with your current user agent string. Useful for determining the correct value to use in device include/exclude lists. |
+| `refresh_on_update` | bool | Refreshes the background when the updated state of the weather entity changes even if the value does not. |
+| `refresh_interval` | numeric | Number of minutes to refresh the background, it picks from the current list. |
 
 > **Note on `opacity`:** The `opacity` setting makes the entire view container semi-transparent, which only produces a see-through card effect when combined with a theme that sets `--ha-card-background` to a transparent or semi-transparent colour (e.g. `rgba(0,0,0,0.3)`). Without a compatible theme, cards will appear faded but not transparent. Several HACS themes (such as iOS themes) provide this out of the box.
 
