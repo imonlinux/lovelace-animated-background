@@ -88,6 +88,7 @@ All options go under the `animated_background:` key at the root of your Lovelace
 | `entity` | string | Home Assistant entity whose state drives background changes. |
 | `state_url` | map | Map of entity states to video or image URLs. Each value can be a single URL or a list. Set a state to `'none'` to disable the background for that state. Required if `entity` is set. |
 | `opacity` | number (0–99) | Makes the view element semi-transparent so the background shows through cards. Requires a theme that sets card backgrounds to transparent or semi-transparent. **Note:** this creates a CSS stacking context — see [Troubleshooting](https://claude.ai/chat/5905014c-aa85-4fb7-95c4-3943bd6d8557#troubleshooting-popups-appear-behind-the-background). |
+| `overlay` | map | Optional tint layer drawn over the background media. Takes `color` (any CSS color, default `#000000`) and `opacity` (0–1, default `0.3`). Darkens or tints busy backgrounds so cards and text stay readable. Can be set at the root, group, or view level. |
 | `transparent_panel` | bool | Makes the top navigation panel/header transparent. Default: `false`. |
 | `views` | list | Per-view configuration overrides. See [View Configuration](https://claude.ai/chat/5905014c-aa85-4fb7-95c4-3943bd6d8557#view-configuration). |
 | `groups` | list | Named reusable configurations that views can reference. See [Group Configuration](https://claude.ai/chat/5905014c-aa85-4fb7-95c4-3943bd6d8557#group-configuration). |
@@ -306,6 +307,22 @@ animated_background:
 ```
 
 > `sun.sun` has two states — `above_horizon` (daytime) and `below_horizon` (night) — giving you four possible combinations to map backgrounds to.
+
+---
+
+### Tinting a busy background
+
+```yaml
+animated_background:
+  entity: weather.home
+  overlay:
+    color: "#000000"
+    opacity: 0.35
+  state_url:
+    sunny: /local/backgrounds/sunny/hlhff0h8md4ev0kju5be.hd.mp4
+```
+
+> `overlay` tints the background media itself (a layer drawn on top of the video/image), while `opacity` makes the dashboard's cards semi-transparent. They're independent: use `overlay` to darken a bright background for readability, and `opacity` (with a compatible theme) to let the background show through cards.
 
 ---
 

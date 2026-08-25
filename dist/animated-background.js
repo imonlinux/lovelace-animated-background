@@ -463,7 +463,31 @@ function renderBackgroundHTML() {
       doc_body = `<img src='${state_url}'>`
     }
 
-    
+    // Optional tint overlay drawn above the media. Resolved from the current
+    // config, falling back to the root config — same pattern as opacity and
+    // transparent_panel. `color` is any CSS color; `opacity` is 0..1.
+    var overlay = current_config.overlay !== undefined
+      ? current_config.overlay
+      : (Animated_Config ? Animated_Config.overlay : null);
+    var overlay_style = "";
+    var overlay_html = "";
+    if (overlay && (overlay.color || overlay.opacity != null)) {
+      var overlay_color = overlay.color || "#000000";
+      var overlay_opacity = overlay.opacity != null ? overlay.opacity : 0.3;
+      overlay_style = `
+        #overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: ${overlay_color};
+          opacity: ${overlay_opacity};
+          pointer-events: none;
+        }`;
+      overlay_html = `<div id='overlay'></div>`;
+    }
+
     var source_doc = `
     <html>
     <head>
@@ -499,10 +523,12 @@ function renderBackgroundHTML() {
           left: 50%;
           transform: translate(-50%, -50%);
         }
+        ${overlay_style}
       </style>
     </head>  
     <body id='source-body'>
     ${doc_body}
+    ${overlay_html}
     </body>
     </html>`;
     if (!bg) {
