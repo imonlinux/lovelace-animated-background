@@ -326,6 +326,24 @@ animated_background:
 
 ---
 
+## Visual Editor
+
+Don't want to hand-edit YAML? The plugin ships a visual editor card in the same file — no extra resource needed.
+
+1. Edit any dashboard and add a card. Find **Animated Background Editor** in the custom cards picker (or use Manual card and type `custom:animated-background-editor`).
+2. Place it on the dashboard you want to configure — ideally a private/admin view, since it's a tool rather than a decoration.
+3. Edit the configuration across the tabs: **General** (default URL, opacity, overlay, refresh), **Entity & States**, **Views**, **Groups**, **Access** (user/device include/exclude), and **Advanced** (debug).
+4. Click **Save**. On storage-mode dashboards (dashboards managed through the Home Assistant UI) the configuration is written directly and the background redraws immediately. View→group assignments are written onto the matching view definitions for you.
+
+**Notes:**
+
+- On YAML-mode dashboards, saving is not possible from the card. In that case the editor generates the `animated_background:` block (plus the view-level lines) for you to copy into your configuration file.
+- **Copy YAML** always works — it produces the `animated_background:` block for the current form, which is handy for sharing a configuration or keeping one in a YAML repo.
+- The editor only touches the `animated_background:` root key and the `animated_background:` key on view definitions. Everything else in your dashboard config is preserved untouched.
+- If a `views:` entry references a view path that no longer exists, the editor shows it as a stale entry so you can delete it.
+
+---
+
 ## Troubleshooting: Popups appear behind the background
 
 If you use **Bubble Card** or similar popup integrations and notice popups opening behind the background, this is a CSS stacking context issue caused by the `opacity` option.
