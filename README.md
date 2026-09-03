@@ -132,10 +132,10 @@ All options go under the `animated_background:` key:
 | `transparent_panel` | bool | Makes the top navigation panel/header transparent. Default: `false`. |
 | `views` | list | Per-view configuration overrides. See [View Configuration](#view-configuration). |
 | `groups` | list | Named reusable configurations that views can reference. See [Group Configuration](#group-configuration). |
-| `included_users` | list of strings | Only these users will see the animated background. All others are excluded. |
-| `excluded_users` | list of strings | These users will not see the animated background. |
+| `included_users` | list of strings | Only these users will see the animated background. All others are excluded. See the precedence rules below. |
+| `excluded_users` | list of strings | These users will not see the animated background. Exclusions always win. |
 | `included_devices` | list of strings | Only these device types will show the background. Supported values: `iphone`, `ipad`, `windows`, `macintosh`, `android`. |
-| `excluded_devices` | list of strings | These device types will not show the background. |
+| `excluded_devices` | list of strings | These device types will not show the background. Exclusions always win. |
 | `debug` | bool | Enables detailed console logging. |
 | `display_user_agent` | bool | Shows an alert with your current user agent string. Useful for determining the correct value to use in device include/exclude lists. |
 | `refresh_on_update` | bool | Refreshes the background when the updated state of the weather entity changes even if the value does not. |
@@ -144,6 +144,11 @@ All options go under the `animated_background:` key:
 > **Note on `opacity`:** The `opacity` setting makes the entire view container semi-transparent, which only produces a see-through card effect when combined with a theme that sets `--ha-card-background` to a transparent or semi-transparent colour (e.g. `rgba(0,0,0,0.3)`). Without a compatible theme, cards will appear faded but not transparent. Several HACS themes (such as iOS themes) provide this out of the box.
 
 > **Note on root fallback:** `opacity`, `overlay`, `background`, `transparent_panel`, `refresh_interval` and `refresh_on_update` are read from the active view or group config first, and fall back to the root `animated_background:` config when the view or group does not set them. You do not need to repeat them inside each group definition — but you can override them per group or view.
+
+> **Access precedence:** include/exclude lists are evaluated in a fixed order.
+> 1. **Exclusions always win.** A user or device matching any `excluded_users` or `excluded_devices` list (root *or* view/group config) never sees the background, regardless of inclusion lists or `enabled: true`.
+> 2. An explicit `enabled: true` or `enabled: false` on a view or group config applies next. It can override inclusion lists, never exclusions.
+> 3. If any `included_users` or `included_devices` list is configured, the current user or device must match at least one of them to see the background. With no inclusion lists configured, everyone (not excluded by step 1) sees it.
 
 ---
 

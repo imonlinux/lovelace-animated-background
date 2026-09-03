@@ -216,6 +216,15 @@ function currentConfig() {
 }
 
 //logic for checking if enabled in configuration
+// Precedence (documented in the README's Access section):
+//   1. Exclusions always win: a match on any excluded_users /
+//      excluded_devices list (root or view/group config) disables the
+//      background no matter what else is configured.
+//   2. An explicit enabled: true/false on the view/group config applies
+//      next - it can override inclusion lists, never exclusions.
+//   3. Inclusion lists are allowlists: if any included_users /
+//      included_devices list is configured, the current user or device
+//      must match at least one of them.
 function enabled() {
   var temp_enabled = false;
   if (Animated_Config) {
@@ -238,97 +247,55 @@ function enabled() {
     return false;
   }
 
-  //Root configuration exceptions
-  if (Animated_Config.excluded_devices) {
-    if (Animated_Config.excluded_devices.some(deviceIncluded)) {
-      if (temp_enabled) {
-        DEBUG_MESSAGE("Current device is excluded", null, true);
-        temp_enabled = false;
-      }
-    }
+  // 1. Exclusions win - evaluated first, short-circuits everything below.
+  if (Animated_Config.excluded_devices && Animated_Config.excluded_devices.some(deviceIncluded)) {
+    DEBUG_MESSAGE("Current device is excluded", null, true);
+    return false;
+  }
+  if (Animated_Config.excluded_users && Animated_Config.excluded_users.map(username => username.toLowerCase()).includes(Haobj.user.name.toLowerCase())) {
+    DEBUG_MESSAGE("Current user: " + Haobj.user.name + " is excluded", null, true);
+    return false;
+  }
+  if (current_config.excluded_devices && current_config.excluded_devices.some(deviceIncluded)) {
+    DEBUG_MESSAGE("Current device is excluded", null, true);
+    return false;
+  }
+  if (current_config.excluded_users && current_config.excluded_users.map(username => username.toLowerCase()).includes(Haobj.user.name.toLowerCase())) {
+    DEBUG_MESSAGE("Current user: " + Haobj.user.name + " is excluded", null, true);
+    return false;
   }
 
-  if (Animated_Config.excluded_users) {
-    if (Animated_Config.excluded_users.map(username => username.toLowerCase()).includes(Haobj.user.name.toLowerCase())) {
-      if (temp_enabled) {
-        DEBUG_MESSAGE("Current user: " + Haobj.user.name + " is excluded", null, true);
-        temp_enabled = false;
-      }
-    }
-  }
-
-  if (Animated_Config.included_users) {
-    if (Animated_Config.included_users.map(username => username.toLowerCase()).includes(Haobj.user.name.toLowerCase())) {
-      temp_enabled = true;
-    }
-    else {
-      if (temp_enabled) {
-        DEBUG_MESSAGE("Current user: " + Haobj.user.name + " is not included", null, true);
-        temp_enabled = false;
-      }
-    }
-  }
-
-  if (Animated_Config.included_devices) {
-    if (Animated_Config.included_devices.some(deviceIncluded)) {
-      temp_enabled = true;
-    }
-    else {
-      if (temp_enabled) {
-        DEBUG_MESSAGE("Current device is not included", null, true);
-        temp_enabled = false;
-      }
-    }
-  }
-
-  //Current config overrides (only does anything if curre_config and Animated_Config are different)
-  if (current_config.excluded_devices) {
-    if (current_config.excluded_devices.some(deviceIncluded)) {
-      if (temp_enabled) {
-        DEBUG_MESSAGE("Current device is excluded", null, true);
-        temp_enabled = false;
-      }
-    }
-  }
-
-  if (current_config.excluded_users) {
-    if (current_config.excluded_users.map(username => username.toLowerCase()).includes(Haobj.user.name.toLowerCase())) {
-      if (temp_enabled) {
-        DEBUG_MESSAGE("Current user: " + Haobj.user.name + " is excluded", null, true);
-        temp_enabled = false;
-      }
-    }
-  }
-
-  if (current_config.included_users) {
-    if (current_config.included_users.map(username => username.toLowerCase()).includes(Haobj.user.name.toLowerCase())) {
-      temp_enabled = true;
-    }
-    else {
-      if (temp_enabled) {
-        DEBUG_MESSAGE("Current user: " + Haobj.user.name + " is not included", null, true);
-        temp_enabled = false;
-      }
-    }
-  }
-
-  if (current_config.included_devices) {
-    if (current_config.included_devices.some(deviceIncluded)) {
-      temp_enabled = true;
-    }
-    else {
-      if (temp_enabled) {
-        DEBUG_MESSAGE("Current device is not included", null, true);
-        temp_enabled = false;
-      }
-    }
-  }
-
+  // 2. Explicit per-config switch.
   if (current_config.enabled == false) {
-    temp_enabled = false;
+    return false;
   }
   if (current_config.enabled == true) {
-    temp_enabled = true;
+    return true;
+  }
+
+  // 3. Inclusion lists act as allowlists: if any is configured, the user
+  //    or device must match at least one of them (root or per-config).
+  var has_inclusions =
+    (Animated_Config.included_users && Animated_Config.included_users.length) ||
+    (Animated_Config.included_devices && Animated_Config.included_devices.length) ||
+    (current_config.included_users && current_config.included_users.length) ||
+    (current_config.included_devices && current_config.included_devices.length);
+  if (has_inclusions) {
+    var user_matched =
+      (Animated_Config.included_users || []).map(username => username.toLowerCase()).includes(Haobj.user.name.toLowerCase()) ||
+      (current_config.included_users || []).map(username => username.toLowerCase()).includes(Haobj.user.name.toLowerCase());
+    var device_matched =
+      (Animated_Config.included_devices || []).some(deviceIncluded) ||
+      (current_config.included_devices || []).some(deviceIncluded);
+    if (!user_matched && !device_matched) {
+      if (Animated_Config.included_users || current_config.included_users) {
+        DEBUG_MESSAGE("Current user: " + Haobj.user.name + " is not included", null, true);
+      }
+      if (Animated_Config.included_devices || current_config.included_devices) {
+        DEBUG_MESSAGE("Current device is not included", null, true);
+      }
+      return false;
+    }
   }
 
   return temp_enabled;
