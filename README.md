@@ -126,7 +126,7 @@ All options go under the `animated_background:` key:
 | `enabled` | bool | Set to `false` to disable the plugin entirely. Default: `true`. |
 | `entity` | string | Home Assistant entity whose state drives background changes. |
 | `state_url` | map | Map of entity states to video or image URLs. Each value can be a single URL or a list. Set a state to `'none'` to disable the background for that state. Required if `entity` is set. |
-| `opacity` | number (0–99) | Makes the view element semi-transparent so the background shows through cards. Requires a theme that sets card backgrounds to transparent or semi-transparent. **Note:** this creates a CSS stacking context — see [Troubleshooting](#troubleshooting-popups-appear-behind-the-background). |
+| `opacity` | number (1–99) | Makes the view element semi-transparent so the background shows through cards. Requires a theme that sets card backgrounds to transparent or semi-transparent. **Note:** this creates a CSS stacking context — see [Troubleshooting](#troubleshooting-popups-appear-behind-the-background). |
 | `overlay` | map | Optional tint layer drawn over the background media. Takes `color` (any CSS color, default `#000000`) and `opacity` (0–1, default `0.3`). Darkens or tints busy backgrounds so cards and text stay readable. Can be set at the root, group, or view level. |
 | `background` | string | CSS background override for the view behind the header. Defaults to `transparent` when the background is active. Set it to any CSS background value (for example a color) if you do not want the view fully see-through. |
 | `transparent_panel` | bool | Makes the top navigation panel/header transparent. Default: `false`. |

@@ -17,6 +17,7 @@ var View_Loaded = false;
 var Meme_Remover = null;
 var Meme_Count = 0;
 var Refresh_Timer = null;
+var Refresh_Interval_Value = null;
 var Wait_Interval = null;
 var Opacity = 99;
 
@@ -450,7 +451,13 @@ function renderBackgroundHTML() {
   var refresh_interval = current_config.refresh_interval !== undefined
     ? current_config.refresh_interval
     : (Animated_Config ? Animated_Config.refresh_interval : undefined);
+  if (refresh_interval && refresh_interval != Refresh_Interval_Value) {
+    // interval edited since the timer was created - restart so the change
+    // applies without waiting for a page reload
+    clearRefreshTimer();
+  }
   if (refresh_interval && !Refresh_Timer) {
+    Refresh_Interval_Value = refresh_interval;
     Refresh_Timer = setInterval(function() {
       Previous_State = null;
       Previous_Url = null;
@@ -540,27 +547,25 @@ function renderBackgroundHTML() {
     ${overlay_html}
     </body>
     </html>`;
-    if (!bg) {
-      if (!current_config.entity) {
-        STATUS_MESSAGE("Applying default background", true);
-      }
-      var style = document.createElement("style");
-      style.id = "animated-bg-style";
-      style.innerHTML = `
+    // Style is (re)applied on every render, not just when the iframe is
+    // first created, so per-view opacity changes take effect on navigation
+    // without a page reload. Replace-in-place keeps this idempotent.
+    var style = Root.shadowRoot.getElementById('animated-bg-style');
+    var style_rules = `
       .bg-video{
-          min-width: 100vw; 
-          min-height: 100vh;    
+          min-width: 100vw;
+          min-height: 100vh;
       }
-      
+
       #view {
           background: none;
         }
-      
+
       .bg-wrap{
           position: fixed;
           left: 0;
           top: 0;
-          min-width: 100vw; 
+          min-width: 100vw;
           min-height: 100vh;
           z-index: -12;
           pointer-events: none;
@@ -575,16 +580,32 @@ function renderBackgroundHTML() {
       }
       `;
 
-      // Only apply opacity if configured - note this creates a CSS stacking
-      // context which may cause overlays (e.g. Bubble Card) to appear behind
-      // the background. Remove opacity: from your config if this affects you.
-      if (Opacity < 99) {
-        style.innerHTML += `
+    // Only apply opacity if configured - note this creates a CSS stacking
+    // context which may cause overlays (e.g. Bubble Card) to appear behind
+    // the background. Remove opacity: from your config if this affects you.
+    if (Opacity < 99) {
+      // Computed numerically: concatenating after "0." turned single-digit
+      // values (5) into ten times the intended opacity (0.5).
+      var alpha = Math.min(99, Math.max(1, parseInt(Opacity, 10))) / 100;
+      style_rules += `
       hui-masonry-view,
       hui-sections-view,
       hui-panel-view {
-          opacity: 0.` + Opacity + `;
+          opacity: ${alpha};
       }`;
+    }
+    if (!style) {
+      style = document.createElement("style");
+      style.id = "animated-bg-style";
+      style.innerHTML = style_rules;
+      Root.shadowRoot.appendChild(style);
+    } else if (style.innerHTML != style_rules) {
+      style.innerHTML = style_rules;
+    }
+
+    if (!bg) {
+      if (!current_config.entity) {
+        STATUS_MESSAGE("Applying default background", true);
       }
 
 // transparent for top Pannel
@@ -592,15 +613,14 @@ function renderBackgroundHTML() {
       div.id = "background-video";
       div.className = "bg-wrap";
       div.innerHTML = `
-       <iframe id="background-iframe" class="bg-video" frameborder="0" style="pointer-events:none;" srcdoc="${source_doc}"/> 
-      
+       <iframe id="background-iframe" class="bg-video" frameborder="0" style="pointer-events:none;" srcdoc="${source_doc}"/>
+
       `;
-    
-      Root.shadowRoot.appendChild(style);
+
       Root.shadowRoot.appendChild(div);
-      
+
       View.setAttribute ("style","background:none;");
-      
+
       Previous_Url = state_url;
     }
     else {
@@ -737,6 +757,7 @@ function clearMemes() {
 function clearRefreshTimer() {
   clearInterval(Refresh_Timer);
   Refresh_Timer = null;
+  Refresh_Interval_Value = null;
 }
 
 function setDebugMode() {
