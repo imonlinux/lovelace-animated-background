@@ -612,10 +612,16 @@ function renderBackgroundHTML() {
       var div = document.createElement("div");
       div.id = "background-video";
       div.className = "bg-wrap";
-      div.innerHTML = `
-       <iframe id="background-iframe" class="bg-video" frameborder="0" style="pointer-events:none;" srcdoc="${source_doc}"/>
-
-      `;
+      // Built via element properties, not HTML interpolation: a double
+      // quote in a URL or overlay color would truncate an interpolated
+      // srcdoc attribute and blank the background with no diagnostic.
+      var iframe = document.createElement("iframe");
+      iframe.id = "background-iframe";
+      iframe.className = "bg-video";
+      iframe.setAttribute("frameborder", "0");
+      iframe.style.pointerEvents = "none";
+      iframe.srcdoc = source_doc;
+      div.appendChild(iframe);
 
       Root.shadowRoot.appendChild(div);
 
@@ -914,7 +920,15 @@ function restart() {
   }, 200);
 }
 
-run();
+// Guard against double registration (e.g. a leftover /local/ resource plus
+// the /hacsfiles/ one): two copies would run competing observers and render
+// loops on the same DOM.
+if (window.__animatedBackgroundLoaded) {
+  console.warn(Log_Prefix + "already loaded; ignoring duplicate resource registration.");
+} else {
+  window.__animatedBackgroundLoaded = true;
+  run();
+}
 
 
 // ======================================================================
