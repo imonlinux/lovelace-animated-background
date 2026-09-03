@@ -441,13 +441,19 @@ function renderBackgroundHTML() {
 
   Previous_Config = current_config;
 
-  if (current_config.refresh_interval && !Refresh_Timer) {
+  // refresh keys resolve with a root fallback, same as opacity,
+  // transparent_panel and overlay — a group-driven view must inherit a
+  // root-level refresh_interval instead of silently getting none
+  var refresh_interval = current_config.refresh_interval !== undefined
+    ? current_config.refresh_interval
+    : (Animated_Config ? Animated_Config.refresh_interval : undefined);
+  if (refresh_interval && !Refresh_Timer) {
     Refresh_Timer = setInterval(function() {
       Previous_State = null;
       Previous_Url = null;
       renderBackgroundHTML();
-    }, current_config.refresh_interval * 60 * 1000);
-  } else if (!current_config.refresh_interval) {
+    }, refresh_interval * 60 * 1000);
+  } else if (!refresh_interval) {
     clearRefreshTimer();
   }
 
@@ -790,7 +796,12 @@ function run() {
             var entity_data = Haobj.states[current_config.entity];
             var current_last_updated = entity_data ? entity_data.last_updated : null;
             var state_changed = Previous_State != current_state;
-            var force_refresh = current_config.refresh_on_update && current_last_updated !== Previous_Last_Updated;
+            // root fallback here too: refresh_on_update set at root must
+            // reach group-driven views, not just root-config views
+            var refresh_on_update = current_config.refresh_on_update !== undefined
+              ? current_config.refresh_on_update
+              : (Animated_Config ? Animated_Config.refresh_on_update : false);
+            var force_refresh = refresh_on_update && current_last_updated !== Previous_Last_Updated;
             if (state_changed || force_refresh) {
               if (force_refresh && !state_changed) {
                 Previous_State = null;
