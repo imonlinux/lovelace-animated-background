@@ -1469,7 +1469,7 @@ run();
   function defineEditor() {
     if (customElements.get("animated-background-editor")) return;
 
-    var EditorVersion = "v1.1.0-beta.2";
+    var EditorVersion = "v1.1.0";
 
     class AnimatedBackgroundEditor extends HTMLElement {
       constructor() {
@@ -2344,7 +2344,7 @@ run();
 })();
 
 console.info(
-  '%c ANIMATED-BACKGROUND %c v1.1.0-beta.2 ',
+  '%c ANIMATED-BACKGROUND %c v1.1.0 ',
   'color: white; background: #526ecd; font-weight: 700;',
   'color: white; background: #1c1c1c; font-weight: 700;'
 );
