@@ -1750,27 +1750,54 @@ run();
       // options, so re-renders cannot fight the selected state (§2.6)
       _select(value, options, onchange) {
         var HaSelect = customElements.get("ha-select");
-        var sel;
         if (HaSelect) {
-          sel = document.createElement("ha-select");
+          var sel = document.createElement("ha-select");
+          // HA 2026.2 rewrote ha-select from mwc to a ha-dropdown base: it
+          // fires "selected" (new value in detail.value) instead of
+          // "change", never updates its own value property, and its menu
+          // only reacts to ha-dropdown-item children. Older builds are
+          // mwc-based and need ha-list-item + "change".
+          var modern = !!customElements.get("ha-dropdown-item");
+          var itemTag = modern ? "ha-dropdown-item" : "ha-list-item";
           options.forEach(function (o) {
-            var item = document.createElement("ha-list-item");
+            var item = document.createElement(itemTag);
             item.value = o[0];
             item.textContent = o[1];
+            if (modern && o[0] === value) item.selected = true;
             sel.appendChild(item);
           });
-        } else {
-          sel = document.createElement("select");
-          options.forEach(function (o) {
-            var opt = document.createElement("option");
-            opt.value = o[0];
-            opt.textContent = o[1];
-            sel.appendChild(opt);
-          });
+          sel.value = value;
+          // mwc resolves value against its rendered item list during its
+          // own upgrade; re-assert after so the assignment cannot be lost
+          if (sel.updateComplete && typeof sel.updateComplete.then === "function") {
+            sel.updateComplete.then(function () { sel.value = value; });
+          }
+          if (modern) {
+            sel.addEventListener("selected", function (e) {
+              var next = e.detail && e.detail.value !== undefined
+                ? e.detail.value
+                : e.target.value;
+              if (next === value) return; // initial sync / same-value pick
+              onchange(next);
+            });
+          } else {
+            sel.addEventListener("change", function (e) { onchange(e.target.value); });
+          }
+          // mwc's menu "closed" event bubbles composed and can be mistaken
+          // for a dialog dismissal by an ancestor; HA stops it too
+          sel.addEventListener("closed", function (e) { e.stopPropagation(); });
+          return sel;
         }
-        sel.value = value;
-        sel.addEventListener("change", function (e) { onchange(e.target.value); });
-        return sel;
+        var native = document.createElement("select");
+        options.forEach(function (o) {
+          var opt = document.createElement("option");
+          opt.value = o[0];
+          opt.textContent = o[1];
+          native.appendChild(opt);
+        });
+        native.value = value;
+        native.addEventListener("change", function (e) { onchange(e.target.value); });
+        return native;
       }
 
       _entityPicker(value, onchange) {
