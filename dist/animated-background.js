@@ -17,6 +17,7 @@ var View_Loaded = false;
 var Meme_Remover = null;
 var Meme_Count = 0;
 var Refresh_Timer = null;
+var Wait_Interval = null;
 var Opacity = 99;
 
 //state tracking variables
@@ -196,7 +197,9 @@ function currentConfig() {
     }
 
     if (return_config) {
-      if (return_config.entity) {
+      // state_url may be absent while entity is set (half-finished config);
+      // indexing it would throw on every poll.
+      if (return_config.entity && return_config.state_url) {
         var current_state = getEntityState(return_config.entity);
         var current_url = return_config.state_url[current_state];
         if (current_url) {
@@ -542,6 +545,7 @@ function renderBackgroundHTML() {
         STATUS_MESSAGE("Applying default background", true);
       }
       var style = document.createElement("style");
+      style.id = "animated-bg-style";
       style.innerHTML = `
       .bg-video{
           min-width: 100vw; 
@@ -614,6 +618,8 @@ function renderBackgroundHTML() {
     }  // <-- this closes the if (state_url != "" && Hui) block
 
   // transparent for top Panel - evaluated on every render
+  // Reachable with Hui unresolved (e.g. provideHass during startup), so gate first.
+  if (!Hui || !Hui.shadowRoot) return;
   // Fall back to root Animated_Config for top-level settings not present in group/view configs
   var transparent_panel = current_config.transparent_panel !== undefined ? current_config.transparent_panel : (Animated_Config ? Animated_Config.transparent_panel : false);
   if (transparent_panel) {
@@ -725,6 +731,7 @@ function processDefaultBackground(temp_enabled) {
 function clearMemes() {
   clearInterval(Meme_Remover);
   Meme_Remover = null;
+  Meme_Count = 0;
 }
 
 function clearRefreshTimer() {
@@ -755,8 +762,10 @@ function cleanupDOM() {
   if (Root && Root.shadowRoot) {
     var oldDiv = Root.shadowRoot.getElementById('background-video');
     if (oldDiv) oldDiv.remove();
-    var oldStyles = Root.shadowRoot.querySelectorAll('style');
-    oldStyles.forEach(function(s) { s.remove(); });
+    // Remove only our own style element. The shadow root also holds Home
+    // Assistant's stylesheets (and card-mod's) - those must survive.
+    var ownStyle = Root.shadowRoot.getElementById('animated-bg-style');
+    if (ownStyle) ownStyle.remove();
   }
   if (Hui && Hui.shadowRoot) {
     var panelStyle = Hui.shadowRoot.getElementById('animated-bg-panel-style');
@@ -783,7 +792,14 @@ function run() {
 
   //subscribe to hass object to detect state changes
   if (!Haobj) {
-    document.querySelector("home-assistant").provideHass({
+    var ha_el = document.querySelector("home-assistant");
+    if (!ha_el) {
+      // run() fires at load, possibly before Home Assistant mounts.
+      // restart()'s poll loop waits for exactly this.
+      restart();
+      return;
+    }
+    ha_el.provideHass({
       set hass(value) {
         if (Haobj && Haobj.panelUrl != value.panelUrl) {
           restart();
@@ -856,8 +872,11 @@ function run() {
 function restart() {
   cleanupDOM();
   clearRefreshTimer();
-  clearInterval(wait_interval);
-  var wait_interval = setInterval(() => {
+  if (Wait_Interval) {
+    clearInterval(Wait_Interval);
+    Wait_Interval = null;
+  }
+  Wait_Interval = setInterval(() => {
     getVars()
     if (Hui) {
       Previous_Entity = null;
@@ -868,7 +887,8 @@ function restart() {
       clearMemes();
       View_Observer.disconnect();
       run();
-      clearInterval(wait_interval);
+      clearInterval(Wait_Interval);
+      Wait_Interval = null;
     }
   }, 200);
 }
