@@ -1413,7 +1413,12 @@ run();
         }
       });
     }
-    (children || []).forEach(function (c) {
+    // children may be an array, a single node/string, or varargs —
+    // callers use all three styles
+    var kids = children === undefined || children === null
+      ? []
+      : (Array.isArray(children) ? children : Array.prototype.slice.call(arguments, 2));
+    kids.forEach(function (c) {
       if (c === null || c === undefined) return;
       node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
     });
