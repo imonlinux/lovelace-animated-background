@@ -525,7 +525,9 @@ function renderBackgroundHTML() {
       }
 
       #view {
-          background: none;
+          position: relative !important;
+          z-index: 1 !important;
+          background: none !important;
         }
 
       .bg-wrap{
@@ -534,7 +536,7 @@ function renderBackgroundHTML() {
           top: 0;
           min-width: 100vw;
           min-height: 100vh;
-          z-index: -12;
+          z-index: 0 !important;
           pointer-events: none;
       }
 
@@ -1491,7 +1493,7 @@ if (window.__animatedBackgroundLoaded) {
   function defineEditor() {
     if (customElements.get("animated-background-editor")) return;
 
-    var EditorVersion = "v1.1.1";
+    var EditorVersion = "v1.1.2";
 
     class AnimatedBackgroundEditor extends HTMLElement {
       constructor() {
@@ -2393,7 +2395,7 @@ if (window.__animatedBackgroundLoaded) {
 })();
 
 console.info(
-  '%c ANIMATED-BACKGROUND %c v1.1.1 ',
+  '%c ANIMATED-BACKGROUND %c v1.1.2 ',
   'color: white; background: #526ecd; font-weight: 700;',
   'color: white; background: #1c1c1c; font-weight: 700;'
 );
